@@ -1,0 +1,10 @@
+$Outputfile = "C:\Windows\temp\LocalUsers.txt"
+$Localusers = Get-LocalUser | Select-Object *
+Test-Path $Outputfile | %{if($_ -eq $false){new-item $Outputfile} }
+$OutPutFileContents = Get-Content $Outputfile | ConvertFrom-Json
+
+If((get-item $Outputfile).LastWriteTime -lt (Get-Date).AddDays((-180))){    $Localusers | ConvertTo-Json |out-file $Outputfile  }
+
+$Compare = Compare-Object -DifferenceObject $OutPutFileContents.name -ReferenceObject $Localusers.name
+
+if(!$Compare) { $Compare = "Healthy"}
