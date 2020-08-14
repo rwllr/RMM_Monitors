@@ -1,0 +1,35 @@
+Function Get-PrivilegedGroupChanges {            
+    Param(            
+        $Server = "localhost",            
+        $Hour = 24            
+    )            
+                
+        $ProtectedGroups = Get-ADGroup -Filter 'AdminCount -eq 1' -Server $Server            
+        $Members = @()            
+                
+        ForEach ($Group in $ProtectedGroups) {            
+            $Members += Get-ADReplicationAttributeMetadata -Server $Server `
+                -Object $Group.DistinguishedName -ShowAllLinkedValues |            
+             Where-Object {$_.IsLinkValue} |            
+             Select-Object @{name='GroupDN';expression={$Group.DistinguishedName}}, `
+                @{name='GroupName';expression={$Group.Name}}, *            
+        }            
+                
+        $Members |            
+            Where-Object {$_.LastOriginatingChangeTime -gt (Get-Date).AddHours(-1 * $Hour)}            
+                
+    }     
+    
+    $ListOfChanges = Get-PrivilegedGroupChanges
+    
+    if($ListOfChanges -eq $Null) 
+    {
+    $GroupChanges = "No Changes Detected"
+    }
+    else {
+    foreach($item in $ListOfChanges){
+    $GroupChanges += "Group $($ListOfChanges.GroupName) has been changed - $($listofchanges.AttributeValue) has been added or removed"
+    }
+    }
+    
+    if(!$groupChanges) { $GroupChanges = "No Changes Detected"}
