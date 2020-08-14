@@ -1,0 +1,12 @@
+$ArrayOfNames = @("test", "tmp","skykick","mig", "migwiz","temp","-admin","supervisor")
+
+foreach($name in $ArrayOfNames){
+$filter =  'Name -like "*'+ $($name) + '*"'
+$Users = Get-ADUser -Filter $filter
+if($users -ne $null){
+foreach($user in $users){
+$TemporaryUser += "$($user.name) has been found, created at $($user.whencreated)`n"
+}
+}
+}
+if(!$TemporaryUser){$Userlist = "No Temporary Accounts Found" }
